@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест: Чи поважаєш ти бджіл? 🐝</title>
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --bg: #fefce8;
+            --card: #ffffff;
+            --text: #1c1917;
+            --muted: #78716c;
+            --correct-bg: #dcfce7;
+            --correct-border: #22c55e;
+            --correct-text: #15803d;
+            --wrong-bg: #fee2e2;
+            --wrong-border: #ef4444;
+            --wrong-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(#fde047 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .quiz-container {
+            background: var(--card);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 24px;
+            box-shadow: 0 12px 30px -5px rgba(245, 158, 11, 0.2);
+            padding: 28px;
+            border: 3px solid #fef08a;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .subject-badge {
+            background: #fef3c7;
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .counter {
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #fef3c7;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 10%;
+            transition: width 0.3s ease;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 24px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #ffffff;
+            border: 2px solid #e7e5e4;
+            border-radius: 14px;
+            padding: 16px;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: #fffbeb;
+        }
+
+        .option-btn.correct {
+            background: var(--correct-bg);
+            border-color: var(--correct-border);
+            color: var(--correct-text);
+            font-weight: 600;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-bg);
+            border-color: var(--wrong-border);
+            color: var(--wrong-text);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .next-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-top: 24px;
+            cursor: pointer;
+            display: none;
+            transition: background 0.2s;
+        }
+
+        .next-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Екран результатів */
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: #fef3c7;
+            color: var(--primary-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            border: 5px solid var(--primary);
+        }
+
+        .score-number {
+            font-size: 2.3rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .result-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .result-desc {
+            color: var(--muted);
+            margin-bottom: 24px;
+            line-height: 1.5;
+            font-size: 1.05rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- Екран тесту -->
+    <div id="quizScreen">
+        <div class="header">
+            <span class="subject-badge">🐝 Бджолиний Патруль</span>
+            <span class="counter" id="questionCounter">Питання 1 з 10</span>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="question-text" id="questionText">Завантаження...</div>
+        
+        <div class="options-list" id="optionsList"></div>
+
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Наступне питання ➔</button>
+    </div>
+
+    <!-- Екран результатів -->
+    <div class="result-screen" id="resultScreen">
+        <div class="score-circle">
+            <span class="score-number" id="finalScore">0/10</span>
+            <span class="score-label">балів поваги</span>
+        </div>
+        <h2 class="result-title" id="resultTitle">Тест завершено!</h2>
+        <p class="result-desc" id="resultDesc">Перевіряємо твій рівень поваги до бджіл...</p>
+        <button class="next-btn" style="display: block;" onclick="restartQuiz()">🐝 Пройти тест ще раз</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "Головне питання: Чи поважаєш ти бджіл? 🐝",
+            options: [
+                "Так, максимально! Без них не буде життя на Землі 👑",
+                "Таке собі, я їх боюся",
+                "Байдуже, головне щоб не кусали",
+                "Ні, це просто комахи"
+            ],
+            correct: 0
+        },
+        {
+            question: "Що станеться зі світом, якщо бджоли зникнуть?",
+            options: [
+                "Нічого не зміниться, просто не буде меду",
+                "Зникне близько 75% усіх рослин і почнеться глобальний голод",
+                "Стане менше квітів у парках, але продукти залишаться",
+                "Їх повністю замінять метелики та мухи"
+            ],
+            correct: 1
+        },
+        {
+            question: "Як бджоли розповідають одна одній, де знайшли смачні квіти?",
+            options: [
+                "Видають спеціальний ультразвуковий писк",
+                "Залишають ароматний слід у повітрі",
+                "Виконують спеціальний «танець» у вулику",
+                "Летять усі разом за розвідницею"
+            ],
+            correct: 2
+        },
+        {
+            question: "Скільки очей має звичайна медоносна бджола?",
+            options: [
+                "2 великих ока",
+                "4 ока",
+                "5 очей (2 великих складних і 3 маленьких на тім'ї)",
+                "8 очей, як у павука"
+            ],
+            correct: 2
+        },
+        {
+            question: "Яку форму мають бджолині стільники (соти) і чому?",
+            options: [
+                "Круглу, бо так легше ліпити з воску",
+                "Квадратну, для зручності зберігання",
+                "Правильний шестикутник — це ідеальна форма з найменшою витратою воску",
+                "Трикутну, щоб мед не витікав"
+            ],
+            correct: 2
+        },
+        {
+            question: "Скільки меду виробляє одна бджола за все своє життя?",
+            options: [
+                "Цілу трилітрову банку",
+                "Близько 1 кілограма",
+                "Лише 1/12 чайної ложки (приблизно 5 грамів)",
+                "200 грамів"
+            ],
+            correct: 2
+        },
+        {
+            question: "Що робити, якщо біля тебе літає бджола?",
+            options: [
+                "Розмахувати руками і голосно кричати",
+                "Спробувати її прихлопнути",
+                "Зберігати спокій і повільно відійти вбік, не заважаючи їй",
+                "Почати швидко бігти по колу"
+            ],
+            correct: 2
+        },
+        {
+            question: "Чи псується справжній натуральний мед з часом?",
+            options: [
+                "Так, через рік він скисає",
+                "Ніколи! Археологи знаходили їстівний мед у гробницях фараонів",
+                "Псується, якщо тримати його не в холодильнику",
+                "Зберігається максимум 5 років"
+            ],
+            correct: 1
+        },
+        {
+            question: "Чому бджола гине після того, як вжалить людину?",
+            options: [
+                "Від сильного стресу",
+                "Її жало має зазубрини і застрягає в еластичній шкірі людини",
+                "Вона витрачає всю свою енергію на укус",
+                "Це міф, бджоли не гинуть"
+            ],
+            correct: 1
+        },
+        {
+            question: "Як кожен з нас може допомогти бджолам та проявити до них повагу?",
+            options: [
+                "Висаджувати медоносні квіти та не палити суху траву",
+                "Купувати натуральний мед у місцевих пасічників",
